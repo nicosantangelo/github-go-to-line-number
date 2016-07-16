@@ -1,0 +1,11 @@
+{
+  "name": "Github go to line",
+  "version": "1.0.0",
+  "description": "Go to line modal for Github files/diffs",
+  "main": "content.js",
+  "scripts": {},
+  "author": "Nicolás Santángelo",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {}
+}
