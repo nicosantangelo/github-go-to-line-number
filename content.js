@@ -3,6 +3,12 @@
 
   var MODAL_URL = chrome.extension.getURL('modal.html')
 
+  var urlObserver = new window.MutationObserver(function (mutations, observer) {
+    // Careful! this will get fired twice without the disconnect method
+    modal.close()
+    urlObserver.disconnect()
+  })
+
   var modal = {
     el: document.createElement('div'),
     input: null,
@@ -64,15 +70,26 @@
       xmlhttp.send()
     },
     toggle: function () {
-      // TODO
+      if (modal.el.style.display === 'none') {
+        modal.open()
+      } else {
+        modal.close()
+      }
     },
     open: function () {
       modal.el.style.display = 'block'
       modal.input.focus()
+
+      urlObserver.observe(document.getElementById('js-pjax-loader-bar'), {
+        attributes: true,
+        attributeFilter: ['class']
+      })
     },
     close: function () {
       modal.el.style.display = 'none'
       modal.input.value = ''
+
+      urlObserver.disconnect()
     },
     addEventListener: function (selector, event, fn) {
       modal.el.querySelector(selector).addEventListener(event, fn, false)
@@ -87,8 +104,7 @@
       }
 
       if (event.ctrlKey && event.key === 'g' && hasLineNumbers()) {
-        modal.open()
-        observeURL()
+        modal.toggle()
       }
     }, false)
   })
@@ -101,17 +117,6 @@
     return number
       ? document.querySelectorAll("[data-line-number='" + number + "']")
       : []
-  }
-
-  function observeURL() {
-    var obs = new window.MutationObserver(function (mutations, observer) {
-      // Careful! this will get fired twice without the disconnect method
-      modal.close()
-      obs.disconnect()
-    })
-
-    obs.observe(document.getElementById('js-pjax-loader-bar'), { attributes: true, attributeFilter: ['class'] })
-    return obs
   }
 
   var debounce = (function debounce() {
