@@ -14,9 +14,19 @@
       return document.querySelectorAll("[data-line-number]").length
     },
     find(number) {
-      return number
-        ? document.querySelectorAll("[data-line-number='" + number + "']")
-        : []
+      var lineNumbers = document.querySelectorAll("[data-line-number='" + number + "']")
+      var parents     = []
+      
+      if(lineNumbers.length === 0) {
+        return []
+      }
+
+      return Array.prototype.filter.call(lineNumbers, function (number) {
+        if (parents.indexOf(number.parentElement) === -1) {
+          parents.push(number.parentElement)
+          return true
+        }
+      })
     }
   }
 
@@ -38,6 +48,16 @@
           // Text input
           var lineNumbers = []
           var lastIndex = 0
+          var showCurrentLineNumber = function () {
+            modal.result.innerHTML = (lastIndex + 1) + "/" + lineNumbers.length
+
+            // Fetch the sibling with .blob-code
+            // Don't hightlight if it didn't change
+            var lineNumber = lineNumbers[lastIndex]
+            scrollIntoView(lineNumber)
+            hightlight(lineNumber.nextElementSibling)
+          }
+
           modal.addEventListener('input', 'keyup', function (event) {
             if (!isNumber(this.value)) {
               modal.result.innerHTML = ''
@@ -53,11 +73,7 @@
                 if (lastIndex === lineNumbers.length) {
                   lastIndex = 0
                 }
-
-                modal.result.innerHTML = (lastIndex + 1) + "/" + lineNumbers.length
-
-                var number = lineNumbers[lastIndex] // yeah I know I know, hoisting
-                scrollIntoView(number)
+                showCurrentLineNumber()
               }
               return
             }
@@ -70,26 +86,7 @@
               return
             }
 
-            // Search result
-            // Count only one per <tr>
-            modal.result.innerHTML = "1" + "/" + lineNumbers.length
-
-            var number = lineNumbers[lastIndex]
-            scrollIntoView(number)
-
-            debounce(function () {
-              // Fetch the sibling with .blob-code
-              var sibling = number.nextElementSibling
-
-              // Don't hightlight if it didn't change
-              sibling.style.backgroundColor = "#F8EEC7"
-
-              setTimeout(function () {
-                sibling.style.backgroundColor = "#FFF"
-              }, 450)
-            })
-
-            // enter on modal input (cycle if > 1)
+            showCurrentLineNumber()
           })
 
           // Close button
@@ -98,6 +95,8 @@
           callback()
         }
       }
+
+
 
       xmlhttp.open('GET', MODAL_URL, true)
       xmlhttp.send()
@@ -146,16 +145,6 @@
   // -----------------------------------------------------------------------------
   // Utils
 
-  var debounce = (function debounce() {
-    var timerId
-    return function (fn, time) {
-      clearTimeout(timerId)
-      timerId = setTimeout(function() {
-        fn()
-      }, time || 180)
-    }
-  })()
-
   function isNumber(value) {
     return !isNaN(+value)
   }
@@ -168,6 +157,28 @@
   function documentOffsetTop(el) {
     return el.offsetTop + ( el.offsetParent ? documentOffsetTop(el.offsetParent) : 0 )
   }
+
+  function hightlight(el) {
+    debounce(function () {
+      var backgroundColor = el.style.backgroundColor
+
+      el.style.backgroundColor = "#F8EEC7"
+
+      setTimeout(function () {
+        el.style.backgroundColor = backgroundColor
+      }, 450)
+    })
+  }
+
+  var debounce = (function debounce() {
+    var timerId
+    return function (fn, time) {
+      clearTimeout(timerId)
+      timerId = setTimeout(function() {
+        fn()
+      }, time || 180)
+    }
+  })()
 })()
 
 // Inline html ?
