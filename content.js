@@ -9,9 +9,21 @@
     urlObserver.disconnect()
   })
 
+  var gutter = {
+    exists() {
+      return document.querySelectorAll("[data-line-number]").length
+    },
+    find(number) {
+      return number
+        ? document.querySelectorAll("[data-line-number='" + number + "']")
+        : []
+    }
+  }
+
   var modal = {
     el: document.createElement('div'),
     input: null,
+    result: null,
     load: function (callback) {
       var xmlhttp = new XMLHttpRequest()
 
@@ -19,34 +31,56 @@
         if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
           modal.el.innerHTML = xmlhttp.responseText
           modal.input = modal.el.getElementsByTagName('input')[0]
+          modal.result = modal.el.getElementsByTagName('small')[0]
           modal.close()
           document.body.appendChild(modal.el)
 
           // Text input
           var lineNumbers = []
+          var lastIndex = 0
           modal.addEventListener('input', 'keyup', function (event) {
             if (!isNumber(this.value)) {
+              modal.result.innerHTML = ''
               return
             }
 
-            if (event.key === 'Enter' && lineNumbers.length === 1) {
-              modal.close()
-              lineNumbers = []
+            if (event.key === 'Enter') {
+              if(lineNumbers.length <= 1) {
+                modal.close()
+                lineNumbers = []
+              } else {
+                lastIndex += 1
+                if (lastIndex === lineNumbers.length) {
+                  lastIndex = 0
+                }
+
+                modal.result.innerHTML = (lastIndex + 1) + "/" + lineNumbers.length
+
+                var number = lineNumbers[lastIndex] // yeah I know I know, hoisting
+                scrollIntoView(number)
+              }
               return
             }
 
-            lineNumbers = findLineNumbers(this.value)
+            lineNumbers = gutter.find(this.value)
+            lastIndex = 0
 
             if (lineNumbers.length === 0) {
+              modal.result.innerHTML = ''
               return
             }
 
-            // search result
-            var number  = lineNumbers[0]
-            var sibling = number.nextElementSibling
-            scrollTo(0, number.offsetTop)
+            // Search result
+            // Count only one per <tr>
+            modal.result.innerHTML = "1" + "/" + lineNumbers.length
+
+            var number = lineNumbers[lastIndex]
+            scrollIntoView(number)
 
             debounce(function () {
+              // Fetch the sibling with .blob-code
+              var sibling = number.nextElementSibling
+
               // Don't hightlight if it didn't change
               sibling.style.backgroundColor = "#F8EEC7"
 
@@ -56,7 +90,6 @@
             })
 
             // enter on modal input (cycle if > 1)
-            // enter on modal input (cycle goto if == 1)
           })
 
           // Close button
@@ -88,6 +121,7 @@
     close: function () {
       modal.el.style.display = 'none'
       modal.input.value = ''
+      modal.result.innerHTML = ''
 
       urlObserver.disconnect()
     },
@@ -103,21 +137,14 @@
         return
       }
 
-      if (event.ctrlKey && event.key === 'g' && hasLineNumbers()) {
+      if (event.ctrlKey && event.key === 'g' && gutter.exists()) {
         modal.toggle()
       }
     }, false)
   })
 
-  function hasLineNumbers() {
-    return document.querySelectorAll("[data-line-number]").length
-  }
-
-  function findLineNumbers(number) {
-    return number
-      ? document.querySelectorAll("[data-line-number='" + number + "']")
-      : []
-  }
+  // -----------------------------------------------------------------------------
+  // Utils
 
   var debounce = (function debounce() {
     var timerId
@@ -131,6 +158,15 @@
 
   function isNumber(value) {
     return !isNaN(+value)
+  }
+
+  function scrollIntoView(el) {
+    var top = documentOffsetTop(el) - ( window.innerHeight / 2 )
+    window.scrollTo(0, top)
+  }
+
+  function documentOffsetTop(el) {
+    return el.offsetTop + ( el.offsetParent ? documentOffsetTop(el.offsetParent) : 0 )
   }
 })()
 
