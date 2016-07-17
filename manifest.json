@@ -7,7 +7,9 @@
     {
       "matches": [
         "https://www.github.com/*",
-        "http://www.github.com/*"
+        "http://www.github.com/*",
+        "https://github.com/*",
+        "http://github.com/*"
       ],
       "js": [
         "content.js"
@@ -15,5 +17,6 @@
       "run_at": "document_idle"
     }
   ],
-  "permissions": []
+  "permissions": [],
+  "web_accessible_resources": ["modal.html"]
 }
