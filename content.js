@@ -11,10 +11,10 @@
 
   var gutter = {
     exists() {
-      return rootEl.querySelectorAll("td[data-line-number]").length
+      return rootEl.querySelectorAll('td[data-line-number]').length
     },
     find(number) {
-      var lineNumbers = rootEl.querySelectorAll("td[data-line-number='" + number + "']")
+      var lineNumbers = rootEl.querySelectorAll('td[data-line-number="' + number + '"]')
       var parents = []
       
       if(lineNumbers.length === 0) {
@@ -41,15 +41,16 @@
       modal.close()
       document.body.appendChild(modal.el)
 
-      // Text input
+      modal.addEvents()
+    },
+    addEvents: function () {
       var lineNumbers = []
       var lastIndex = 0
       var showCurrentLineNumber = function () {
         if (lineNumbers.length > 1) {
-          modal.result.innerHTML = (lastIndex + 1) + "/" + lineNumbers.length
+          modal.result.innerHTML = (lastIndex + 1) + '/' + lineNumbers.length
         }
 
-        // Don't hightlight if it didn't change
         var lineNumber = lineNumbers[lastIndex]
         var codeBlock  = lineNumber.parentElement.lastElementChild
 
@@ -102,7 +103,6 @@
         showCurrentLineNumber()
       })
 
-      // Close button
       modal.addEventListener('svg', 'click', modal.close)
     },
     toggle: function () {
@@ -150,6 +150,14 @@
 
         if (event.ctrlKey && event.key === 'g' && gutter.exists()) {
           modal.toggle()
+          event.preventDefault()
+        }
+      }, false)
+
+      document.addEventListener('click', function (event) {
+        // Shipit. Checks if the modal was clicked in a rather hackish way
+        if (event.path.length < 2 || event.path[2].className.search('gotoline') === -1) {
+          modal.close()
         }
       }, false)
     }
@@ -176,7 +184,7 @@
   var hightlight = debounce(function (el) {
     var backgroundColor = el.style.backgroundColor
 
-    el.style.backgroundColor = "#F8EEC7"
+    el.style.backgroundColor = '#F8EEC7'
 
     setTimeout(function () {
       el.style.backgroundColor = backgroundColor
@@ -185,7 +193,7 @@
 
   function debounce(fn, time) {
     var timerId
-    time = time || 180
+    time = time || 200
     return function () {
       var args = arguments
       var self = this
@@ -195,6 +203,3 @@
     }
   }
 })()
-
-// Inline html ?
-// Use github styles ?
