@@ -1,4 +1,4 @@
-# <img src="/icons/48.png" align="absmiddle"> GitHub go to line
+# <img src="/icons/48.png" align="absmiddle"> GitHub go to line number
 
 ![](https://i.imgur.com/HlDcnX2.gif)
 

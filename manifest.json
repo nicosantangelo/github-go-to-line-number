@@ -1,6 +1,7 @@
 {
   "manifest_version": 2,
-  "name": "GitHub go to line",
+  "name": "GitHub go to line number",
+  "short_name": "Github goto",
   "version": "1.0.0",
   "icons": {
     "16": "icons/16.png",
