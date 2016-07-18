@@ -1,21 +1,21 @@
 ;(function () {
   'use strict'
 
-  var MODAL_URL = chrome.extension.getURL('modal.html')
-
   var urlObserver = new window.MutationObserver(function (mutations, observer) {
     // Careful! this will get fired twice without the disconnect method
     modal.close()
     urlObserver.disconnect()
   })
 
+  var rootEl = document.getElementById('js-repo-pjax-container')
+
   var gutter = {
     exists() {
-      return document.querySelectorAll("[data-line-number]").length
+      return rootEl.querySelectorAll("td[data-line-number]").length
     },
     find(number) {
-      var lineNumbers = document.querySelectorAll("[data-line-number='" + number + "']")
-      var parents     = []
+      var lineNumbers = rootEl.querySelectorAll("td[data-line-number='" + number + "']")
+      var parents = []
       
       if(lineNumbers.length === 0) {
         return []
@@ -34,72 +34,65 @@
     el: document.createElement('div'),
     input: null,
     result: null,
-    load: function (callback) {
-      var xmlhttp = new XMLHttpRequest()
+    load: function (html) {
+      modal.el.innerHTML = html
+      modal.input = modal.el.getElementsByTagName('input')[0]
+      modal.result = modal.el.getElementsByTagName('small')[0]
+      modal.close()
+      document.body.appendChild(modal.el)
 
-      xmlhttp.onreadystatechange = function() {
-        if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
-          modal.el.innerHTML = xmlhttp.responseText
-          modal.input = modal.el.getElementsByTagName('input')[0]
-          modal.result = modal.el.getElementsByTagName('small')[0]
-          modal.close()
-          document.body.appendChild(modal.el)
+      // Text input
+      var lineNumbers = []
+      var lastIndex = 0
+      var showCurrentLineNumber = function () {
+        modal.result.innerHTML = (lastIndex + 1) + "/" + lineNumbers.length
 
-          // Text input
-          var lineNumbers = []
-          var lastIndex = 0
-          var showCurrentLineNumber = function () {
-            modal.result.innerHTML = (lastIndex + 1) + "/" + lineNumbers.length
+        // Don't hightlight if it didn't change
+        var lineNumber = lineNumbers[lastIndex]
+        var codeBlock  = lineNumber.parentElement.lastElementChild
 
-            // Fetch the sibling with .blob-code
-            // Don't hightlight if it didn't change
-            var lineNumber = lineNumbers[lastIndex]
-            scrollIntoView(lineNumber)
-            hightlight(lineNumber.nextElementSibling)
-          }
-
-          modal.addEventListener('input', 'keyup', function (event) {
-            if (!isNumber(this.value)) {
-              modal.result.innerHTML = ''
-              return
-            }
-
-            if (event.key === 'Enter') {
-              if(lineNumbers.length <= 1) {
-                modal.close()
-                lineNumbers = []
-              } else {
-                lastIndex += 1
-                if (lastIndex === lineNumbers.length) {
-                  lastIndex = 0
-                }
-                showCurrentLineNumber()
-              }
-              return
-            }
-
-            lineNumbers = gutter.find(this.value)
-            lastIndex = 0
-
-            if (lineNumbers.length === 0) {
-              modal.result.innerHTML = ''
-              return
-            }
-
-            showCurrentLineNumber()
-          })
-
-          // Close button
-          modal.addEventListener('svg', 'click', modal.close)
-
-          callback()
-        }
+        scrollIntoView(lineNumber)
+        hightlight(codeBlock)
       }
 
+      modal.addEventListener('input', 'keyup', function (event) {
+        if (!isNumber(this.value)) {
+          modal.result.innerHTML = ''
+          return
+        }
 
+        // Support shift enter
+        if (event.key === 'Enter') {
+          if(lineNumbers.length <= 1) {
+            modal.close()
+            lineNumbers = []
+          } else {
+            lastIndex += 1
+            if (lastIndex === lineNumbers.length) {
+              lastIndex = 0
+            }
+            showCurrentLineNumber()
+          }
+          return
+        }
 
-      xmlhttp.open('GET', MODAL_URL, true)
-      xmlhttp.send()
+        if (event.key !== 'Backspace' && event.key !== 'Delete' && !isNumber(event.key)) {
+          return
+        }
+
+        lineNumbers = gutter.find(this.value)
+        lastIndex = 0
+
+        if (lineNumbers.length === 0) {
+          modal.result.innerHTML = ''
+          return
+        }
+
+        showCurrentLineNumber()
+      })
+
+      // Close button
+      modal.addEventListener('svg', 'click', modal.close)
     },
     toggle: function () {
       if (modal.el.style.display === 'none') {
@@ -129,18 +122,29 @@
     }
   }
 
-  modal.load(function globalKeyboardShortcut() {
-    document.addEventListener('keydown', function (event) {
-      if (event.key === 'Escape') {
-        modal.close()
-        return
-      }
+  // -----------------------------------------------------------------------------
+  // Start
+ 
+  var xmlhttp = new XMLHttpRequest()
 
-      if (event.ctrlKey && event.key === 'g' && gutter.exists()) {
-        modal.toggle()
-      }
-    }, false)
-  })
+  xmlhttp.onreadystatechange = function() {
+    if (xmlhttp.readyState === 4 && xmlhttp.status === 200) {
+      modal.load(xmlhttp.responseText)
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'Escape') {
+          modal.close()
+          return
+        }
+
+        if (event.ctrlKey && event.key === 'g' && gutter.exists()) {
+          modal.toggle()
+        }
+      }, false)
+    }
+  }
+  xmlhttp.open('GET', chrome.extension.getURL('modal.html'), true)
+  xmlhttp.send()
 
   // -----------------------------------------------------------------------------
   // Utils
@@ -158,27 +162,27 @@
     return el.offsetTop + ( el.offsetParent ? documentOffsetTop(el.offsetParent) : 0 )
   }
 
-  function hightlight(el) {
-    debounce(function () {
-      var backgroundColor = el.style.backgroundColor
+  var hightlight = debounce(function (el) {
+    var backgroundColor = el.style.backgroundColor
 
-      el.style.backgroundColor = "#F8EEC7"
+    el.style.backgroundColor = "#F8EEC7"
 
-      setTimeout(function () {
-        el.style.backgroundColor = backgroundColor
-      }, 450)
-    })
-  }
+    setTimeout(function () {
+      el.style.backgroundColor = backgroundColor
+    }, 450)
+  })
 
-  var debounce = (function debounce() {
+  function debounce(fn, time) {
     var timerId
-    return function (fn, time) {
+    time = time || 180
+    return function () {
+      var args = arguments
+      var self = this
+
       clearTimeout(timerId)
-      timerId = setTimeout(function() {
-        fn()
-      }, time || 180)
+      timerId = setTimeout(function() { fn.apply(self, args) }, time)
     }
-  })()
+  }
 })()
 
 // Inline html ?
