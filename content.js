@@ -45,7 +45,9 @@
       var lineNumbers = []
       var lastIndex = 0
       var showCurrentLineNumber = function () {
-        modal.result.innerHTML = (lastIndex + 1) + "/" + lineNumbers.length
+        if (lineNumbers.length > 1) {
+          modal.result.innerHTML = (lastIndex + 1) + "/" + lineNumbers.length
+        }
 
         // Don't hightlight if it didn't change
         var lineNumber = lineNumbers[lastIndex]
@@ -61,16 +63,25 @@
           return
         }
 
-        // Support shift enter
         if (event.key === 'Enter') {
           if(lineNumbers.length <= 1) {
             modal.close()
             lineNumbers = []
           } else {
-            lastIndex += 1
-            if (lastIndex === lineNumbers.length) {
-              lastIndex = 0
+            if (event.shiftKey) {
+              lastIndex -= 1
+
+              if (lastIndex === -1) {
+                lastIndex = lineNumbers.length - 1
+              }
+            } else {
+              lastIndex += 1
+
+              if (lastIndex === lineNumbers.length) {
+                lastIndex = 0
+              }
             }
+            
             showCurrentLineNumber()
           }
           return
