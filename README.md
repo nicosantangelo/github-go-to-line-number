@@ -4,10 +4,10 @@
 
 ### What ?
 
-Free and open-source Google Chrome extension which emulates the _go to line number_ right into GitHub.
-If you ever wanted to find a particular line of code in a GitHub diff and grew frustrated because it refuses to find line numbers, this is for you.
+Free and open-source Google Chrome extension which emulates a _go to line number_ modal right into GitHub.
+If you ever wanted to find a particular line number on GitHub and grew frustrated because Chrome refuses to find it, this is for you.
 
-It uses the "de facto" shortcut to spawn the line number modal <kbd>ctrl+g</kbd>.
+The modal is toggled pressing <kbd>ctrl+g</kbd> and supports both diffs and single code files. You can cycle throughout the results using the <kbd>enter</kbd> key to move forward and <kbd>shift+enter</kbd> to move backwards.
 
 
 If you have suggestions or problems using the extension, please [submit a bug or a feature request](https://github.com/NicoSantangelo/github-go-to-line/issues/).
@@ -18,7 +18,8 @@ You have a few options:
 
 #### Webstore
 
-...
+1. Install it from the [Chrome Web Store](https://chrome.google.com/webstore/detail/cbpdahjcomdapkaojlbhbbmopbmbecio)
+
 
 #### .crx
 
