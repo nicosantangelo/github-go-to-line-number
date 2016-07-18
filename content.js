@@ -1,20 +1,13 @@
 ;(function () {
   'use strict'
 
-  var urlObserver = new window.MutationObserver(function (mutations, observer) {
-    // Careful! this will get fired twice without the disconnect method
-    modal.close()
-    urlObserver.disconnect()
-  })
-
-  var rootEl = document.getElementById('js-repo-pjax-container')
-
   var gutter = {
+    root: document.getElementById('js-repo-pjax-container'),
     exists() {
-      return rootEl.querySelectorAll('td[data-line-number]').length
+      return gutter.root.querySelectorAll('td[data-line-number]').length
     },
     find(number) {
-      var lineNumbers = rootEl.querySelectorAll('td[data-line-number="' + number + '"]')
+      var lineNumbers = gutter.root.querySelectorAll('td[data-line-number="' + number + '"]')
       var parents = []
       
       if(lineNumbers.length === 0) {
@@ -132,6 +125,8 @@
       modal.el.querySelector(selector).addEventListener(event, fn, false)
     }
   }
+
+  var urlObserver = new window.MutationObserver(function (mutations, observer) { modal.close() })
 
   // -----------------------------------------------------------------------------
   // Start
