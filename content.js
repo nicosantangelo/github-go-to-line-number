@@ -45,7 +45,7 @@
         }
 
         var lineNumber = lineNumbers[lastIndex]
-        var codeBlock  = lineNumber.parentElement.lastElementChild
+        var codeBlock  = nextByClass(lineNumber, 'blob-code')
 
         scrollIntoView(lineNumber)
         hightlight(codeBlock)
@@ -174,6 +174,14 @@
 
   function documentOffsetTop(el) {
     return el.offsetTop + ( el.offsetParent ? documentOffsetTop(el.offsetParent) : 0 )
+  }
+
+  function nextByClass(node, className) {
+    while (node = node.nextSibling) {
+      if (node.className && node.className.search(className) !== -1) {
+        return node
+      }
+    }
   }
 
   var hightlight = debounce(function (el) {
