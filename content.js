@@ -57,7 +57,7 @@
           return
         }
 
-        if (event.key === 'Enter') {
+        if (event.keyCode === 13) { // Enter
           if(lineNumbers.length <= 1) {
             modal.close()
             lineNumbers = []
@@ -81,7 +81,7 @@
           return
         }
 
-        if (event.key !== 'Backspace' && event.key !== 'Delete' && !isNumber(event.key)) {
+        if (event.keyCode !== 8 && event.keyCode !== 46 && !isNumber(String.fromCharCode(event.keyCode))) { // Backspace && Delete
           return
         }
 
@@ -138,12 +138,12 @@
       modal.load(xmlhttp.responseText)
 
       document.addEventListener('keydown', function (event) {
-        if (event.key === 'Escape') {
+        if (event.keyCode === 27) { // Esc
           modal.close()
           return
         }
 
-        if (event.ctrlKey && event.key === 'g' && gutter.exists()) {
+        if (event.ctrlKey && event.keyCode === 71 && gutter.exists()) { // Ctrl + g
           modal.toggle()
           event.preventDefault()
         }
