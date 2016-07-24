@@ -3,10 +3,10 @@
 
   var gutter = {
     root: document.getElementById('js-repo-pjax-container'),
-    exists() {
+    exists: function () {
       return gutter.root.querySelectorAll('td[data-line-number]').length
     },
-    find(number) {
+    find: function (number) {
       var lineNumbers = gutter.root.querySelectorAll('td[data-line-number="' + number + '"]')
       var parents = []
       
